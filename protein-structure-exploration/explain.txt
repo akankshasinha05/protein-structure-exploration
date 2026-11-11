@@ -1,0 +1,177 @@
+================================================================================
+EXPLAIN.TXT: BASIC PROTEIN STRUCTURE EXPLORATION & VISUALIZATION
+================================================================================
+
+Welcome! This document gives you a complete, crystal-clear explanation of:
+1. The structural biology and biophysical theory behind this project in simple words.
+2. The exact project folder and file structure.
+3. A line-by-line / block-by-block breakdown of every single line of code in explore_structure.py
+   and generate_diagrams.py.
+4. How PyMOL molecular rendering scripts work.
+5. Simple step-by-step instructions on how to run everything.
+
+--------------------------------------------------------------------------------
+1. THE BIOPHYSICAL THEORY (IN EASY LANGUAGE)
+--------------------------------------------------------------------------------
+What is a Protein?
+Proteins are biological nano-machines that perform almost all functions in living systems:
+speeding up chemical reactions (enzymes), carrying oxygen (hemoglobin), protecting against
+pathogens (antibodies), and providing structural scaffolding (collagen).
+
+A protein's function is determined entirely by its 3D Shape!
+Protein structure is organized into 4 hierarchical levels:
+
+1. Primary Structure:
+   - The linear string of amino acids linked together by covalent peptide bonds (-CO-NH-).
+   - There are 20 standard amino acids (e.g. Alanine, Glycine, Cysteine, Valine).
+
+2. Secondary Structure:
+   - Regular, local folding of the polypeptide backbone held together by hydrogen bonds
+     between backbone C=O and N-H groups.
+   - Alpha Helix (α): A tight, right-handed coiled spiral with 3.6 amino acid residues per turn.
+     Hydrogen bonds connect residue i to residue i+4.
+   - Beta Sheet (β): Extended strands of polypeptide chains lying side-by-side (parallel or
+     antiparallel), forming pleated sheets stabilized by hydrogen bonds between adjacent strands.
+   - Random Coils / Loops: Flexible, non-repetitive segments connecting helices and sheets.
+
+3. Tertiary Structure:
+   - The full, 3-dimensional spatial folding of a single polypeptide chain.
+   - Driven by hydrophobic collapse (greasy water-fearing amino acids cluster inside the core,
+     while water-loving hydrophilic residues face outside).
+   - Stabilized by salt bridges, hydrogen bonds, and covalent Disulfide Bridges (S-S bonds
+     formed between pairs of Cysteine residues).
+
+4. Quaternary Structure:
+   - When multiple folded polypeptide chains (called "subunits") assemble together into a functional
+     multimeric protein complex (e.g. Hemoglobin is an α2β2 tetramer made of 4 subunits).
+
+The 3 Model Proteins Analyzed in this Project:
+1. Crambin (PDB: 1CRN):
+   - A small seed plant protein (46 residues). Famous because it has an ultra-high resolution
+     structure with 3 stabilizing disulfide crosslinks.
+2. Myoglobin (PDB: 1MBN):
+   - The oxygen storage protein in diving mammal muscle (153 residues). Has a classic "globin fold"
+     composed entirely of 8 alpha helices and 0 beta sheets, holding an iron-heme prosthetic group.
+3. Hemoglobin (PDB: 1HHO):
+   - The oxygen transporter in human red blood cells. A 4-subunit heterotetramer (287 residues)
+     holding 4 oxygen-binding heme cofactors, displaying allosteric cooperativity.
+
+--------------------------------------------------------------------------------
+2. PROJECT & FILE STRUCTURE
+--------------------------------------------------------------------------------
+protein-structure-exploration/
+|-- data/
+|   |-- 1crn.pdb                      <- Protein Data Bank atomic coordinate file for Crambin
+|   |-- 1mbn.pdb                      <- Atomic coordinates for Deoxymyoglobin
+|   |-- 1hho.pdb                      <- Atomic coordinates for Human Oxyhemoglobin
+|-- figures/
+|   |-- protein_structural_levels.png <- Visual diagram of Primary -> Quaternary structure
+|   |-- alpha_helix_vs_beta_sheet.png <- Schematic comparison of alpha helices and beta sheets
+|   |-- secondary_structure_composition.png <- Comparative composition stacked bar chart
+|-- scripts/
+|   |-- render_crambin.pml            <- PyMOL automated script for Crambin rendering
+|   |-- render_hemoglobin.pml         <- PyMOL script for Hemoglobin tetramer rendering
+|   |-- render_myoglobin.pml          <- PyMOL script for Myoglobin heme-pocket rendering
+|-- explore_structure.py              <- Main structure parsing & analysis Python program
+|-- generate_diagrams.py              <- Scientific illustration generator for structural levels
+|-- explain.txt                       <- This complete guide
+|-- requirements.txt                  <- Python libraries needed (matplotlib, numpy)
+|-- .gitignore                        <- Ignored temporary files
+|-- README.md                         <- GitHub repository summary
+
+--------------------------------------------------------------------------------
+3. LINE-BY-LINE / BLOCK-BY-BLOCK CODE EXPLANATION
+--------------------------------------------------------------------------------
+
+A. explore_structure.py:
+
+Lines 5-10: AA_3TO1 Dictionary
+-> A mapping converting 3-letter biochemical amino acid codes (ALA, CYS, GLU, MET, etc.)
+   into standard single-letter codes ('A', 'C', 'E', 'M').
+
+Lines 12-63: parse_pdb_file(filepath)
+-> Opens raw Protein Data Bank (.pdb) files and parses standard crystallographic record headers:
+   - 'HEADER': Date, classification, and PDB ID.
+   - 'TITLE': Official scientific name of the macromolecule.
+   - 'SEQRES': Primary amino acid sequence for each protein chain.
+   - 'HELIX': Start and end residue numbers of each recognized alpha helix.
+   - 'SHEET': Start and end residue numbers of beta sheet strands.
+   - 'SSBOND': Covalent disulfide bonds between Cysteine sulfur atoms.
+   - 'HETATM': Non-protein ligands and prosthetic groups (e.g. HEM = heme iron group, PO4 = phosphate).
+   - 'ATOM': Counts total 3D atomic coordinates.
+-> Returns a clean, structured Python dictionary of the entire macromolecular architecture.
+
+Lines 65-70: get_amino_acid_counts(res_list)
+-> Tallies frequencies of individual amino acid residues across a chain.
+
+Lines 72-106: plot_secondary_structures(results, output_path)
+-> Computes the exact percentage of residues in:
+   1. Alpha Helices (cornflower blue)
+   2. Beta Sheets (salmon orange)
+   3. Loops / Coils (light gray)
+-> Renders a stacked bar chart comparing all 3 proteins side-by-side.
+-> Saves the 300 DPI graphic to 'figures/secondary_structure_composition.png'.
+
+Lines 108-156: main()
+-> Discovers all .pdb files in 'data/'.
+-> Iterates through each protein, parses the coordinates, and prints an elegant summary:
+   * Title, chains, total residues
+   * Number of helices and residue coverage
+   * Number of beta sheets and residue coverage
+   * Disulfide bridges and bound ligands
+   * First 40 residues of each chain's single-letter sequence
+-> Calls plot_secondary_structures() to output the comparative chart.
+
+---
+
+B. generate_diagrams.py:
+
+Lines 4-50: generate_structure_levels_diagram(output_path)
+-> Draws a 4-panel educational schematic:
+   - Panel 1: Primary structure (beads on a string representing peptide bonds).
+   - Panel 2: Secondary structure (sine-wave alpha helix and directional beta arrows).
+   - Panel 3: Tertiary structure (3D folded loop with a yellow dashed disulfide bond).
+   - Panel 4: Quaternary structure (four interlocking colored subunit domains).
+-> Saves to 'figures/protein_structural_levels.png'.
+
+Lines 52-95: generate_alpha_beta_diagram(output_path)
+-> Draws a side-by-side comparison illustrating the spiral helical pitch of an alpha helix
+   versus the pleated parallel/antiparallel hydrogen bonded strands of a beta pleated sheet.
+-> Saves to 'figures/alpha_helix_vs_beta_sheet.png'.
+
+---
+
+C. PyMOL Scripts (scripts/*.pml):
+- 'load data/1mbn.pdb': loads the 3D atomic coordinate geometry into PyMOL.
+- 'hide everything': hides messy default wireframe sticks.
+- 'show cartoon': renders smooth secondary structure ribbons.
+- 'color marine, ss h': colors alpha helices blue.
+- 'select heme, resn HEM': finds and selects the heme prosthetic group.
+- 'show sticks, heme': shows the catalytic heme molecule in stick representation.
+- 'ray 1600, 1200': performs high-end ray tracing for light reflection and shadows.
+
+--------------------------------------------------------------------------------
+4. HOW TO USE & RUN
+--------------------------------------------------------------------------------
+Step 1: Open your terminal or Command Prompt.
+Step 2: Navigate into this folder:
+    cd c:\Users\Krait\Desktop\internship\akansa\protein-structure-exploration
+
+Step 3: Run the structural explorer on all PDB files:
+    python explore_structure.py
+
+Step 4: Generate the structural biology schematic diagrams:
+    python generate_diagrams.py
+
+Step 5 (Optional - if PyMOL is installed on your PC):
+    pymol -qc scripts/render_myoglobin.pml
+    pymol -qc scripts/render_crambin.pml
+    pymol -qc scripts/render_hemoglobin.pml
+
+Step 6: View your output:
+    - Review the structural statistics and amino acid sequences in your terminal.
+    - Check the 'figures/' folder for the three high-resolution diagrams:
+      * secondary_structure_composition.png
+      * protein_structural_levels.png
+      * alpha_helix_vs_beta_sheet.png
+================================================================================
